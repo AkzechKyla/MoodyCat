@@ -90,6 +90,18 @@ def main():
         else:
             await m.channel.send(c)
 
+    async def sleepinfo_embed(description, title, embed_footer):
+        embed = discord.Embed(
+            colour=discord.Colour.dark_blue(),
+            description=f"{description}",
+            title=f"{title}",
+        )
+
+        embed.set_footer(text=f"{embed_footer}")
+        embed.set_author(name="💤SLEEP HOURS💤")
+
+        return embed
+
     @bot.command(
         help="Converts your sleep time in 12-hour time format into total hours to track how long you've slept for the day.",
         description="Command Info:",
@@ -120,14 +132,10 @@ def main():
 
             total_hours = await parse_sleep(sleep_time, wake_time)
 
-            embed = discord.Embed(
-                colour=discord.Colour.dark_blue(),
-                description=f"{sleep_time} - {wake_time} ({total_hours:.2f} hours)",
-                title=f"{date_sleep}",
-            )
+            sleep_info = f"{sleep_time} - {wake_time} ({total_hours:.2f} hours)"
+            embed_footer = f"created by {ctx.author}"
 
-            embed.set_footer(text=f"created by {ctx.author}")
-            embed.set_author(name="💤SLEEP HOURS💤")
+            embed = await sleepinfo_embed(sleep_info, date_sleep, embed_footer)
 
             await ctx.send(embed=embed)
 
@@ -178,20 +186,15 @@ def main():
 
             existing_embed_description = sleep_msg.embeds[0].description
             existing_embed_title = sleep_msg.embeds[0].title
+            embed_footer = f"created by {ctx.author}"
 
             new_description = f"{existing_embed_description}\n{sleep_time} - {wake_time} ({total_hours:.2f} hours)"
 
-            updated_embed = discord.Embed(
-                colour=discord.Colour.dark_blue(),
-                description=f"{new_description}",
-                title=f"{existing_embed_title}",
+            updated_embed = await sleepinfo_embed(
+                new_description, existing_embed_title, embed_footer
             )
 
-            updated_embed.set_footer(text=f"created by {ctx.author}")
-            updated_embed.set_author(name="💤SLEEP HOURS💤")
-
             await sleep_msg.edit(embed=updated_embed)
-
             await delete_messages(ctx, messages_to_delete)
 
         except asyncio.TimeoutError:
