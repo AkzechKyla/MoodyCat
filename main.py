@@ -3,7 +3,6 @@ import discord
 
 import asyncio
 
-
 from discord.ext import commands
 
 from datetime import datetime, timedelta
@@ -70,6 +69,27 @@ def main():
 
         asyncio.create_task(ctx.message.delete())
 
+    async def stick_message(message: discord.Message) -> None:
+        if message.channel.id != 1028932255256682536:  # sorcery-lab
+            return
+        if message.author.id == bot.user.id:
+            return
+
+        total_score = 100
+
+        prefix = "\u200c"
+        c = f"Your score for today is **{total_score}**!"
+        c = f"{prefix}{c}"
+
+        async for m in message.channel.history(limit=5):
+            if m.author.id == bot.user.id:
+                if m.content.startswith(prefix):
+                    asyncio.create_task(m.delete())
+                    asyncio.create_task(m.channel.send(c))
+                    break
+        else:
+            await m.channel.send(c)
+
     @bot.command(
         help="Converts your sleep time in 12-hour time format into total hours to track how long you've slept for the day.",
         description="Command Info:",
@@ -100,13 +120,16 @@ def main():
 
             total_hours = await parse_sleep(sleep_time, wake_time)
 
-            await ctx.send(
-                f"```"
-                f"DATE: {date_sleep}"
-                f"```\n"
-                f"<@{ctx.author.id}>'s **SLEEP HOURS:**\n"
-                f"> {sleep_time} - {wake_time} ({total_hours:.2f} hours)"
+            embed = discord.Embed(
+                colour=discord.Colour.dark_blue(),
+                description=f"{sleep_time} - {wake_time} ({total_hours:.2f} hours)",
+                title=f"{date_sleep}",
             )
+
+            embed.set_footer(text=f"created by {ctx.author}")
+            embed.set_author(name="💤SLEEP HOURS💤")
+
+            await ctx.send(embed=embed)
 
             await delete_messages(ctx, messages_to_delete)
 
@@ -153,9 +176,21 @@ def main():
 
             total_hours = await parse_sleep(sleep_time, wake_time)
 
-            new_content = f"> {sleep_time} - {wake_time} ({total_hours:.2f} hours)"
+            existing_embed_description = sleep_msg.embeds[0].description
+            existing_embed_title = sleep_msg.embeds[0].title
 
-            await sleep_msg.edit(content=sleep_msg.content + "\n" + new_content)
+            new_description = f"{existing_embed_description}\n{sleep_time} - {wake_time} ({total_hours:.2f} hours)"
+
+            updated_embed = discord.Embed(
+                colour=discord.Colour.dark_blue(),
+                description=f"{new_description}",
+                title=f"{existing_embed_title}",
+            )
+
+            updated_embed.set_footer(text=f"created by {ctx.author}")
+            updated_embed.set_author(name="💤SLEEP HOURS💤")
+
+            await sleep_msg.edit(embed=updated_embed)
 
             await delete_messages(ctx, messages_to_delete)
 
@@ -164,31 +199,34 @@ def main():
                 "You took too long to provide the information. Command canceled."
             )
 
-    @bot.command(
-        help="help info.",
-        description="Command Info:",
-        brief="brief help info",
-    )
-    async def stick_message(message: discord.Message) -> None:
-        if message.channel.id != 1028932255256682536:  # sorcery-lab
-            return
-        if message.author.id == bot.user.id:
-            return
+    @bot.command()
+    async def addaction(ctx):
+        def check(message):
+            return message.author == ctx.author and message.channel == ctx.channel
 
-        total_score = 100
+        bot_messages = {
+            "action": "**Enter an action you want to add on your list of actions**",
+            "points": "**Enter corresponding points for that action, e.g., +2 or -1**",
+        }
 
-        prefix = "\u200c"
-        c = f"Your score for today is **{total_score}**!"
-        c = f"{prefix}{c}"
+        messages_to_delete = []
 
-        async for m in message.channel.history(limit=5):
-            if m.author.id == bot.user.id:
-                if m.content.startswith(prefix):
-                    asyncio.create_task(m.delete())
-                    asyncio.create_task(m.channel.send(c))
-                    break
-        else:
-            await m.channel.send(c)
+        try:
+            user_responses = await take_user_input(
+                ctx, bot_messages, messages_to_delete
+            )
+
+            action = user_responses["action"]
+            points = user_responses["points"]
+
+            await ctx.send(f'"**{action}**" with **{points} points** is added!')
+
+            await delete_messages(ctx, messages_to_delete)
+
+        except asyncio.TimeoutError:
+            await ctx.send(
+                "You took too long to provide the information. Command canceled."
+            )
 
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
 
