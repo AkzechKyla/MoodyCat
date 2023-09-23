@@ -1,4 +1,4 @@
-import settings
+from app import settings
 import discord
 
 import asyncio
@@ -153,8 +153,8 @@ def main():
     )
     async def addsleep(
         ctx,
-        msg_id: int = None,
-        channel: discord.TextChannel = None,
+        msg_id: int | None = None,
+        channel: discord.TextChannel | None = None,
     ):
         def check(message):
             return message.author == ctx.author and message.channel == ctx.channel
@@ -162,8 +162,9 @@ def main():
         channel = channel or ctx.channel
 
         try:
-            if not msg_id:
+            if msg_id is None:
                 await ctx.send("You have not provided a message id.")
+                return
 
             sleep_msg = await channel.fetch_message(msg_id)
 
@@ -232,7 +233,3 @@ def main():
             )
 
     bot.run(settings.DISCORD_API_SECRET, root_logger=True)
-
-
-if __name__ == "__main__":
-    main()
