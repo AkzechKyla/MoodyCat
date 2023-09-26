@@ -3,6 +3,7 @@ import discord
 from app.inputs import take_user_input
 from app.messages import delete_messages
 from app.sleep import parse_sleep, sleepinfo_embed
+from database.database import import_data
 
 
 def setup_commands(bot):
@@ -126,6 +127,8 @@ def setup_commands(bot):
 
             action = user_responses["action"]
             points = user_responses["points"]
+
+            await import_data(ctx.author.id, action, points)
 
             await ctx.send(f'"**{action}**" with **{points} points** is added!')
 
