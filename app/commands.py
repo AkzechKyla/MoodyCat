@@ -3,7 +3,7 @@ import discord
 from app.inputs import take_user_input
 from app.messages import delete_messages
 from app.sleep import parse_sleep, sleepinfo_embed
-from database.database import import_data
+from database.database import import_data, read_actions
 
 
 def setup_commands(bot):
@@ -138,3 +138,17 @@ def setup_commands(bot):
             await ctx.send(
                 "You took too long to provide the information. Command canceled."
             )
+
+    @bot.command()
+    async def readactions(ctx):
+        def check(message):
+            return message.author == ctx.author and message.channel == ctx.channel
+
+        total_score, actions = await read_actions(ctx.author.id)
+
+        await ctx.send(
+            f"User ID: {ctx.author.id}\nTotal Score: {total_score}\nActions:",
+        )
+
+        for action, points in actions.items():
+            await ctx.send(f"{action}    {points}")
