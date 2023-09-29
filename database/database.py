@@ -30,3 +30,7 @@ async def read_actions(user_id):
     actions = user_data.get("actions", {})
 
     return total_score, actions
+
+
+async def action_embed(description, title, embed_footer):
+    ...

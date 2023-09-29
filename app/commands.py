@@ -146,9 +146,19 @@ def setup_commands(bot):
 
         total_score, actions = await read_actions(ctx.author.id)
 
-        await ctx.send(
-            f"User ID: {ctx.author.id}\nTotal Score: {total_score}\nActions:",
+        action_list_message = ""
+        for action, points in actions.items():
+            action_list_message += f"{action}  =  **{points} points**\n"
+
+        embed = discord.Embed(
+            colour=discord.Colour.default(),
+            description=f"List of actions by <@{ctx.author.id}>",
+            title="Actions List",
         )
 
-        for action, points in actions.items():
-            await ctx.send(f"{action}    {points}")
+        embed.add_field(name="", value=f"{action_list_message}")
+
+        # embed.set_footer(text="This is the footer")
+        # embed.set_author(name="Action List")
+
+        await ctx.send(embed=embed)
