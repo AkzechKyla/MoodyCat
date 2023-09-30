@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+app = "python run.py"
+
+[packages]
+"discord.py" = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
